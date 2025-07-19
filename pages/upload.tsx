@@ -41,7 +41,6 @@ const UploadPage = () => {
 
     try {
       const uploadedVideo = await api.uploadVideo({ title, description, videoFile }, token);
-      // Chuyển hướng đến trang chi tiết của video vừa tải lên
       router.push(`/videos/${uploadedVideo.id}`);
     } catch (err: unknown) {
         if (err instanceof Error) {

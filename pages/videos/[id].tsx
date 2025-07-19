@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
@@ -33,25 +34,44 @@ const VideoDetailPage = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (typeof id === 'string') {
-      setLoading(true);
-      api.getVideoById(id)
-        .then(data => {
-          setVideo(data);
-        })
-        .catch(err => {
-          setError(err.message || 'Không thể tải chi tiết video.');
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    }
+    if (typeof id !== 'string') return;
+  
+    let intervalId: NodeJS.Timeout;
+  
+    const fetchVideo = async () => {
+      try {
+        const data = await api.getVideoById(id);
+        setVideo(data);
+  
+      
+        if (data.status === 'completed' && intervalId) {
+          clearInterval(intervalId);
+        }
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message || 'An error occurred.');
+        } else {
+          setError('An error occurred.');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    setLoading(true);
+    fetchVideo();
+  
+    intervalId = setInterval(fetchVideo, 5000);
+  
+    return () => {
+      clearInterval(intervalId); 
+    };
   }, [id]);
+  
 
   const handleCommentPosted = (newComment: Comment) => {
     setVideo(currentVideo => {
       if (!currentVideo) return null;
-      // Thêm bình luận mới vào đầu danh sách để hiển thị ngay lập tức
       return {
         ...currentVideo,
         comments: [newComment, ...currentVideo.comments],
@@ -60,7 +80,7 @@ const VideoDetailPage = () => {
   };
 
   if (loading) {
-    return <div className="text-center mt-20">Đang tải thông tin video...</div>;
+    return <div className="text-center mt-20">Loading video information...</div>;
   }
 
   if (error) {
@@ -68,7 +88,7 @@ const VideoDetailPage = () => {
   }
 
   if (!video) {
-    return <div className="text-center mt-20">Không tìm thấy video.</div>;
+    return <div className="text-center mt-20">Video not found.</div>;
   }
 
   return (

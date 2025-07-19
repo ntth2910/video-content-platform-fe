@@ -2,12 +2,11 @@ import { useEffect, useRef } from 'react';
 import Hls from 'hls.js';
 
 interface VideoPlayerProps {
-  src: string | null; // URL của file HLS (.m3u8)
+  src: string | null; 
 }
 
 const VideoPlayer = ({ src }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-    console.log("Quyhehe", src)
   useEffect(() => {
     if (typeof window === 'undefined') {
       return;
